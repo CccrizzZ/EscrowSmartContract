@@ -13,7 +13,7 @@ contract Escrow is AccessControl{
     bytes32 public constant Receiver = keccak256("RECEIVER");
 
     // time limit
-    uint256 timeLimit = 1 minutes;
+    uint256 timeLimit = 15 seconds;
 
     // contract deploy time
     uint256 deployTime;
