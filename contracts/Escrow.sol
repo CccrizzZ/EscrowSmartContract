@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-
-
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 
@@ -35,6 +33,10 @@ contract Escrow is AccessControl{
 
     // deposite function
     function DepositeFor(address receiver) public payable{
+
+        // set deployTime again so every time the user deposite, it set deploytime to current time
+        deployTime = block.timestamp;
+
         // set the role of sender 
         _grantRole(Sender, msg.sender);
 
@@ -56,7 +58,9 @@ contract Escrow is AccessControl{
 
         if (hasRole(Sender, msg.sender)) {
             // if sender called
+            // require that the contract have at least some balance in it
             require(address(this).balance > 0, "no funds available");
+            // require that 
             require(deltaTime >= timeLimit, "you cant get refund before time limit");
             payable(msg.sender).transfer(address(this).balance);
         } else if (hasRole(Receiver, msg.sender)){

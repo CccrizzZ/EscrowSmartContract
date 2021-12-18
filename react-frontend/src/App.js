@@ -2,10 +2,13 @@ import EscrowInterface from './components/EscrowInterface'
 import './App.css'
 
 
+
+
 function App() {
+  
   return (
     <div>
-      <EscrowInterface/>
+      <EscrowInterface />
     </div>
   );
 }

@@ -8,6 +8,8 @@ describe('Escrow', async function () {
     // contract instance
     let EscrowInstance
 
+    let provider = ethers.provider
+
     // addresses
     let Agent
     let Alice
@@ -50,10 +52,17 @@ describe('Escrow', async function () {
 
     it('Bob can withdraw from the escrow if in time limit', async () => {
 
-        // bob withdraw
+        // 10000
+        console.log(ethers.utils.formatEther(await provider.getBalance(Bob.address)))
+
+        // bob withdraw 1 ether
         expect(parseInt(await EscrowInstance.getBalance())).to.be.above(0)
         await EscrowInstance.connect(Bob).Withdraw()
         expect(parseInt(await EscrowInstance.getBalance())).to.be.equal(0)
+
+        // 10000.9999
+        console.log(ethers.utils.formatEther(await provider.getBalance(Bob.address)))
+
     })
 
 
@@ -62,13 +71,22 @@ describe('Escrow', async function () {
         // deposit another eth
         await EscrowInstance.connect(Alice).DepositeFor(Bob.address, {value: ethers.utils.parseEther("1.0")})
         
+        
         // wait for 15 seconds
         await sleep(15000)
+        
+        // 9997.99
+        console.log(ethers.utils.formatEther(await provider.getBalance(Alice.address)))
 
-        // alice get refund
+        // alice get refund 1 ether
         expect(parseInt(await EscrowInstance.getBalance())).to.be.above(0)
         await EscrowInstance.connect(Alice).Withdraw()
         expect(parseInt(await EscrowInstance.getBalance())).to.be.equal(0)
+        
+        // 9998.99
+        console.log(ethers.utils.formatEther(await provider.getBalance(Alice.address)))
+
+
     })
 
 
