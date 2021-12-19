@@ -1,18 +1,29 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from 'react'
 import { Modal, Button, FormControl, InputGroup, ListGroup } from 'react-bootstrap';
-
-
-
-// metamask
-import { ethers } from 'ethers';
 import MetaMaskOnboarding from '@metamask/onboarding';
 import detectEthereumProvider from '@metamask/detect-provider';
-// import { createAlchemyWeb3 } from "@alch/alchemy-web3";
+import { createAlchemyWeb3 } from "@alch/alchemy-web3";
+import {ethers} from 'ethers'
 
-// metamask variables
+// alchemy web3 variables
+const web3 = createAlchemyWeb3(process.env.REACT_APP_API_ENDPOINT)
+const contractABI = require('./contract-abi.json')
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS
+
+// contract instance
+const EscrowContract = new web3.eth.Contract(
+  contractABI,
+  contractAddress
+)
+
+
+
+
+// metamask onboarding variables
 let onboarding
-// const web3 = createAlchemyWeb3(process.env.API_ENDPOINT)
+
+
 
 
 export default class EscrowInterface extends Component {
@@ -170,23 +181,45 @@ export default class EscrowInterface extends Component {
     UpdateAddress = (e) => {
         this.setState({RAddress: e.target.value})
     }
-    Deposit = () => {
-        console.log("Deposit called")
+    Deposit = async () => {
+
+        console.log("Deposit called by: " + this.state.accounts)
         console.log("Amount: " + this.state.Amount)
         console.log("Address: " + this.state.RAddress)
 
-        // call contract function here
+        // convert ether value to wei
+        // console.log("amount in wei: " + web3.utils.toWei(web3.utils.toBN(this.state.Amount), 'ether'))
+
+
+        console.log((this.state.RAddress).toString())
+
+        // call contract deposit function
+        await EscrowContract.methods
+        .DepositeFor((this.state.RAddress).toString())
+        .send({
+            from: this.state.accounts[0],
+            value: web3.utils.toBN(this.state.Amount)
+        })
+
 
     }
-    Withdraw = () => {
-        console.log("Withdraw called")
-        console.log()
+    Withdraw = async () => {
+        console.log("Withdraw called by: " + this.state.accounts)
+
 
         // call contract function here
-        
+        await EscrowContract.methods
+        .Withdraw()
+        .send({from: this.state.accounts })
+
     }
-    GetTimeLeft = () => {
-        
+    GetTimeLeft = async () => {
+
+
+    }
+    GetContractBalance = async () => {
+        let balance = await EscrowContract.methods.getBalance().call()
+        console.log(balance)
     }
 
 
@@ -197,6 +230,7 @@ export default class EscrowInterface extends Component {
                 {/* the wallet connection button */}
                 <div style={{width: '200px', margin: 'auto'}}>
                     <Button variant="primary" onClick={this.OnConnectButtonClicked} disabled={this.state.isConnected}>{this.GetConnectedText()}</Button>
+                    <Button variant="primary" onClick={this.GetContractBalance}>GetContractBalance</Button>
                 </div>
 
 
@@ -208,7 +242,7 @@ export default class EscrowInterface extends Component {
                     <Modal.Body>
                         <InputGroup className="mb-3">
                             <InputGroup.Text id="amt">Amount (in ETH)</InputGroup.Text>
-                            <FormControl aria-label="Amount" aria-describedby="amt" onChange={this.UpdateAmount}/>
+                            <FormControl type="number" aria-label="Amount" aria-describedby="amt" onChange={this.UpdateAmount}/>
                         </InputGroup>
                         <InputGroup className="mb-3">
                             <InputGroup.Text id="addr">Address</InputGroup.Text>
@@ -231,7 +265,6 @@ export default class EscrowInterface extends Component {
                 </Modal.Dialog>
 
 
-
                 <ListGroup style={{width: "50%", margin: "auto"}}>
                     <ListGroup.Item>Connected Account</ListGroup.Item>
                     <ListGroup.Item>{this.state.accounts}</ListGroup.Item>
@@ -240,6 +273,10 @@ export default class EscrowInterface extends Component {
                 <ListGroup style={{width: "50%", margin: "auto"}}>
                     <ListGroup.Item>Current Network</ListGroup.Item>
                     <ListGroup.Item>{this.state.network}</ListGroup.Item>
+                </ListGroup>
+                <ListGroup style={{width: "50%", margin: "auto"}}>
+                    <ListGroup.Item>Contract Address</ListGroup.Item>
+                    <ListGroup.Item>0x95aB7926CAB6412c837a6370f5BBCFc23372141e</ListGroup.Item>
                 </ListGroup>
             </div>
         )
